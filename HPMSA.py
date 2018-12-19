@@ -45,7 +45,6 @@ def makeGetRequest (url):
     }
     xpathresponse = requests.get(url, cookies=cookies).content.decode(
         encoding='UTF-8', errors='strict')
-    print(xpathresponse, end=" ")
     return xpathresponse
 
 def removeChars (inputString):
