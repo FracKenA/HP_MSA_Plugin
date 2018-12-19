@@ -71,7 +71,7 @@ def thresholdCheck (metricname,durableid, metric, warning, critical):
 def thresholdCheckString (metricname, durableid, metric, verificationstring):
     setmetrics(metricname,durableid, metric)
     if metric != verificationstring:
-        result = ("WARNING: "+durableid+" " + metric + " is NOT " + verificationstring +" ")
+        result = ("CRITICAL: "+durableid+" " + metric + " is NOT " + verificationstring +" ")
     else:
         result =""
     return result
@@ -122,12 +122,12 @@ def getList (metricname, durableid, warning, critical, id):
 if __name__ == "__main__":
      parser = argparse.ArgumentParser(description='This is an HP MSA Plugin that uses the XML API to retrieve metrics')
 
-     parser.add_argument("--url", help="full url to the API")
+     parser.add_argument("--url", help="API Url")
      parser.add_argument("--username", help="API username")
      parser.add_argument("--password", help="API password")
-     parser.add_argument("--object_id", help="Identificator Name for the object. For example; system name, durable-id, controller name etc.")
-     parser.add_argument("--metric", help="What metric to receive from the API. For example iops.")
-     parser.add_argument("--objects", help="You can either specify one, multiple (comma separated), or all.")
+     parser.add_argument("--object_id", help="Identificator/Name of the object. For example; system name, durable-id, controller name etc.")
+     parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
+     parser.add_argument("--objects", help="You can either specify one, multiple (comma separated), or all (controllers, pools, enclosure-id etc.).")
      parser.add_argument("--warning", help="Warning Threshold")
      parser.add_argument("--critical", help="Critical Threshold (not needed for string verifications. E.g verify on \"OK\")")
 
