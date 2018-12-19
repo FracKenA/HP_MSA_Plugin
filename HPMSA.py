@@ -96,13 +96,13 @@ def getList (metricname, durableid, warning, critical, id):
                 if metric[index].text.isdigit() or str(metric[index].text)[0].isdigit():
                   result += (thresholdCheck(metricname,durable_id[index].text, metric[index].text, warning, critical))
                 else:
-                  result += thresholdCheckString(metricname,durable_id[index].text, metric[index].text, warning)
+                  result += thresholdCheckString(metricname,durable_id[index].text, metric[index].text, critical)
     else:
         for i in range (0, len(durable_id)):
             if metric[i].text.isdigit() or str(metric[i].text)[0].isdigit():
                result += (thresholdCheck(metricname,durable_id[i].text, metric[i].text, warning, critical))
             else:
-               result+= thresholdCheckString(metricname,durable_id[i].text, metric[i].text, warning)
+               result+= thresholdCheckString(metricname,durable_id[i].text, metric[i].text, critical)
 
     if (len(result) < 1):
         result = "No problems - OK  "
@@ -128,8 +128,8 @@ if __name__ == "__main__":
      parser.add_argument("--object_id", help="Identificator/Name of the object. For example; system name, durable-id, controller name etc.")
      parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
      parser.add_argument("--objects", help="You can either specify one, multiple (comma separated), or all (controllers, pools, enclosure-id etc.).")
-     parser.add_argument("--warning", help="Warning Threshold")
-     parser.add_argument("--critical", help="Critical Threshold (not needed for string verifications. E.g verify on \"OK\")")
+     parser.add_argument("--warning", help="Warning Threshold (not needed for string verifications. E.g verify on \"OK\")")
+     parser.add_argument("--critical", help="Critical Threshold")
 
      args = parser.parse_args()
 
