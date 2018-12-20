@@ -59,26 +59,26 @@ def thresholdCheck (metricname,devices, metric, warning, critical):
     critical = float(critical)
     setmetrics(metricname,devices, metric)
     if metric > warning and metric <= critical:
-        result = ("WARNING: " + devices + " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
+        result = ("WARNING: " + devices + " "+metricname+ " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
     elif metric > critical:
-        result = ("CRITICAL: " + devices + " is above threshold: " + str(critical) + "(" + str(metric) + ") ")
+        result = ("CRITICAL: " + devices + " "+metricname+ " is above threshold: " + str(critical) + "(" + str(metric) + ") ")
     elif metric < critical or metric < warning:
         result = ""
     else:
-        result = ("UNKNOWN: " + devices + " threshold: " + str(warning) + " (" +  str(metric) + ") ")
+        result = ("UNKNOWN: " + devices + " "+metricname+ " threshold: " + str(warning) + " (" +  str(metric) + ") ")
     return result
 
 def thresholdCheckString (metricname, devices, metric, verificationstring):
     setmetrics(metricname,devices, metric)
     if metric != verificationstring:
-        result = ("CRITICAL: "+devices+" " + metric + " is NOT " + verificationstring +" ")
+        result = ("CRITICAL: "+devices+ " "+metricname+" " + metric + " is NOT " + verificationstring +" ")
     else:
         result =""
     return result
 
 def setmetrics (metricname,devices, metric):
     global pipe
-    pipe += devices + "_"+metricname+ "=" + str(metric) + " "
+    pipe += devices + "."+metricname+ "=" + str(metric) + " "
 
 
 def getList (metricname, devices, warning, critical, devicename):
@@ -140,7 +140,7 @@ if __name__ == "__main__":
      parser.add_argument("--url", help="API Url")
      parser.add_argument("--username", help="API username")
      parser.add_argument("--password", help="API password")
-     parser.add_argument("--object_basetype", help="Specify an object basetype in the XML.")
+     parser.add_argument("--object_basetype", help="(Optional) Specify an object basetype in the XML. There are some cases where you have an object under another object.")
      parser.add_argument("--devicename", help="Identificator/Name of the object. For example; system name, devicename-id, controller name etc.")
      parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
      parser.add_argument("--devices", help="You can either specify one, multiple (comma separated), or all (fan1, fan2, fan3 or \"all\" fans).")
