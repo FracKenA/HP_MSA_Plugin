@@ -53,55 +53,60 @@ def removeChars (inputString):
                 inputString = inputString.replace(char, "")
         return inputString
 
-def thresholdCheck (metricname,devicenameid, metric, warning, critical):
+def thresholdCheck (metricname,devices, metric, warning, critical):
     metric = float(removeChars(metric))
     warning = float(warning)
     critical = float(critical)
-    setmetrics(metricname,devicenameid, metric)
+    setmetrics(metricname,devices, metric)
     if metric > warning and metric <= critical:
-        result = ("WARNING: " + devicenameid + " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
+        result = ("WARNING: " + devices + " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
     elif metric > critical:
-        result = ("CRITICAL: " + devicenameid + " is above threshold: " + str(critical) + "(" + str(metric) + ") ")
+        result = ("CRITICAL: " + devices + " is above threshold: " + str(critical) + "(" + str(metric) + ") ")
     elif metric < critical or metric < warning:
         result = ""
     else:
-        result = ("UNKNOWN: " + devicenameid + " threshold: " + str(warning) + " (" +  str(metric) + ") ")
+        result = ("UNKNOWN: " + devices + " threshold: " + str(warning) + " (" +  str(metric) + ") ")
     return result
 
-def thresholdCheckString (metricname, devicenameid, metric, verificationstring):
-    setmetrics(metricname,devicenameid, metric)
+def thresholdCheckString (metricname, devices, metric, verificationstring):
+    setmetrics(metricname,devices, metric)
     if metric != verificationstring:
-        result = ("CRITICAL: "+devicenameid+" " + metric + " is NOT " + verificationstring +" ")
+        result = ("CRITICAL: "+devices+" " + metric + " is NOT " + verificationstring +" ")
     else:
         result =""
     return result
 
-def setmetrics (metricname,devicenameid, metric):
+def setmetrics (metricname,devices, metric):
     global pipe
-    pipe += devicenameid + "_"+metricname+ "=" + str(metric) + " "
+    pipe += devices + "_"+metricname+ "=" + str(metric) + " "
 
 
-def getList (metricname, devicenameid, warning, critical, id):
+def getList (metricname, devices, warning, critical, devicename):
     if object_basetype is None:
-        devicename_id = evalXpath(".//OBJECT/PROPERTY[@name=\"" + id + "\"]")
+        devicename_id = evalXpath(".//OBJECT/PROPERTY[@name=\"" + devicename + "\"]")
+        metric = evalXpath(".//OBJECT/PROPERTY[@name=\"" + metricname + "\"]")
 
     else:
-        devicename_id = evalXpath(".//OBJECT[@name=\""+object_basetype+"\"]/PROPERTY[@name=\"" + id + "\"]")
+        devicename_id = evalXpath(".//OBJECT[@name=\""+object_basetype+"\"]/PROPERTY[@name=\"" + devicename + "\"]")
+        metric = evalXpath(".//OBJECT[@name=\""+object_basetype+"\"]/PROPERTY[@name=\"" + metricname + "\"]")
 
-    metric = evalXpath(".//OBJECT/PROPERTY[@name=\""+metricname+"\"]")
     result =""
-    devicenameid_array = devicenameid.split(",")
+    devices_array = devices.split(",")
 
-    if len(devicename_id) < 1 or len(metric) < 1:
-        print("Cound not find devices or metrics")
-        print(xpathresponse)
+    if len(devicename_id) < 1:
+        print("Cound not find device(s) " + devicename)
+        #print(xpathresponse)
+        exit(1)
+    if len(metric) < 1:
+        print("Cound not find metric " + metricname)
+        #print(xpathresponse)
         exit(1)
 
-    if not devicenameid == "all":
+    if not devices == "all":
         index = 0
         for i in range (0, len(devicename_id)):
-            for devicenameid_single in devicenameid_array:
-             if devicename_id[i].text == devicenameid_single:
+            for devices_single in devices_array:
+             if devicename_id[i].text == devices_single:
                 index = i;
                 if metric[index].text.isdigit() or str(metric[index].text)[0].isdigit():
                   result += (thresholdCheck(metricname,str(devicename_id[index].text).replace(" ", ""), metric[index].text, warning, critical))
@@ -136,20 +141,20 @@ if __name__ == "__main__":
      parser.add_argument("--username", help="API username")
      parser.add_argument("--password", help="API password")
      parser.add_argument("--object_basetype", help="Specify an object basetype in the XML.")
-     parser.add_argument("--object_id", help="Identificator/Name of the object. For example; system name, devicename-id, controller name etc.")
+     parser.add_argument("--devicename", help="Identificator/Name of the object. For example; system name, devicename-id, controller name etc.")
      parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
-     parser.add_argument("--objects", help="You can either specify one, multiple (comma separated), or all (controllers, pools, enclosure-id etc.).")
+     parser.add_argument("--devices", help="You can either specify one, multiple (comma separated), or all (fan1, fan2, fan3 or \"all\" fans).")
      parser.add_argument("--warning", help="Warning Threshold (not needed for string verifications. E.g verify on \"OK\")")
      parser.add_argument("--critical", help="Critical Threshold")
 
      args = parser.parse_args()
 
-     if not args.url or not args.username or not args.password or not args.metric or not args.objects or not args.critical:
-         print("Arguments are mandatory")
+     if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
+         print("Arguments URL, username, password, devicename, metric, devicesa and critical are mandatory")
          exit(1)
 
      object_basetype = args.object_basetype
      username = args.username
      url = args.url
      password = args.password
-     app =getList(args.metric,args.objects, args.warning,args.critical, args.object_id)
+     app =getList(args.metric,args.devices, args.warning,args.critical, args.devicename)
