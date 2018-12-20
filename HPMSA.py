@@ -87,9 +87,13 @@ def setmetrics (urls,metricname,devices, metric):
 
 def getList (HA, HB, metricname, devices, warning, critical, devicename):
 
+
     urls = list()
     urls.append(HA)
-    urls.append(HB)
+    if HB is not None:
+       urls.append(HB)
+
+    result = ""
 
     for j in range(0, len(urls)):
         if object_basetype is None:
@@ -100,7 +104,7 @@ def getList (HA, HB, metricname, devices, warning, critical, devicename):
             devicename_id = evalXpath(urls[j],".//OBJECT[@name=\"" + object_basetype + "\"]/PROPERTY[@name=\"" + devicename + "\"]", None)
             metric = evalXpath(urls[j],".//OBJECT[@name=\"" + object_basetype + "\"]/PROPERTY[@name=\"" + metricname + "\"]", "metric")
 
-        result = ""
+
         devices_array = devices.split(",")
 
         if debug is not None:
@@ -131,6 +135,7 @@ def getList (HA, HB, metricname, devices, warning, critical, devicename):
                     result += (thresholdCheck(urls[j], metricname, str(devicename_id[i].text).replace(" ", ""),metric[i].text, warning, critical))
                 else:
                     result += thresholdCheckString(urls[j],metricname, str(devicename_id[i].text).replace(" ", ""),metric[i].text, critical)
+
 
 
     if (len(result) < 1):
@@ -167,8 +172,8 @@ if __name__ == "__main__":
 
      args = parser.parse_args()
 
-     if not args.HA or not args.HB or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
-         print("Arguments HA, HB, username, password, devicename, metric, devices and critical are mandatory")
+     if not args.HA or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
+         print("Arguments HA, username, password, devicename, metric, devices and critical are mandatory")
          exit(1)
 
      debug = args.debug
