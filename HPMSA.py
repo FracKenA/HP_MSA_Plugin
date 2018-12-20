@@ -11,6 +11,7 @@ username = ""
 password = ""
 url = ""
 xpathresponse = ""
+object_basetype = ""
 
 def getAPIKey ():
     concatted = username+"_"+password
@@ -81,13 +82,19 @@ def setmetrics (metricname,devicenameid, metric):
 
 
 def getList (metricname, devicenameid, warning, critical, id):
-    devicename_id = evalXpath(".//OBJECT/PROPERTY[@name=\""+id+"\"]")
+    if object_basetype is None:
+        devicename_id = evalXpath(".//OBJECT/PROPERTY[@name=\"" + id + "\"]")
+
+    else:
+        devicename_id = evalXpath(".//OBJECT[@name=\""+object_basetype+"\"]/PROPERTY[@name=\"" + id + "\"]")
+
     metric = evalXpath(".//OBJECT/PROPERTY[@name=\""+metricname+"\"]")
     result =""
     devicenameid_array = devicenameid.split(",")
 
     if len(devicename_id) < 1 or len(metric) < 1:
         print("Cound not find devices or metrics")
+        print(xpathresponse)
         exit(1)
 
     if not devicenameid == "all":
@@ -97,15 +104,15 @@ def getList (metricname, devicenameid, warning, critical, id):
              if devicename_id[i].text == devicenameid_single:
                 index = i;
                 if metric[index].text.isdigit() or str(metric[index].text)[0].isdigit():
-                  result += (thresholdCheck(metricname,devicename_id[index].text, metric[index].text, warning, critical))
+                  result += (thresholdCheck(metricname,str(devicename_id[index].text).replace(" ", ""), metric[index].text, warning, critical))
                 else:
-                  result += thresholdCheckString(metricname,devicename_id[index].text, metric[index].text, critical)
+                  result += thresholdCheckString(metricname,str(devicename_id[index].text).replace(" ", ""), metric[index].text, critical)
     else:
         for i in range (0, len(devicename_id)):
             if metric[i].text.isdigit() or str(metric[i].text)[0].isdigit():
-               result += (thresholdCheck(metricname,devicename_id[i].text, metric[i].text, warning, critical))
+               result += (thresholdCheck(metricname,str(devicename_id[i].text).replace(" ", ""), metric[i].text, warning, critical))
             else:
-               result+= thresholdCheckString(metricname,devicename_id[i].text, metric[i].text, critical)
+               result+= thresholdCheckString(metricname,str(devicename_id[i].text).replace(" ", ""), metric[i].text, critical)
 
     if (len(result) < 1):
         result = "No problems - OK  "
@@ -128,6 +135,7 @@ if __name__ == "__main__":
      parser.add_argument("--url", help="API Url")
      parser.add_argument("--username", help="API username")
      parser.add_argument("--password", help="API password")
+     parser.add_argument("--object_basetype", help="Specify an object basetype in the XML.")
      parser.add_argument("--object_id", help="Identificator/Name of the object. For example; system name, devicename-id, controller name etc.")
      parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
      parser.add_argument("--objects", help="You can either specify one, multiple (comma separated), or all (controllers, pools, enclosure-id etc.).")
@@ -140,11 +148,8 @@ if __name__ == "__main__":
          print("Arguments are mandatory")
          exit(1)
 
-
+     object_basetype = args.object_basetype
      username = args.username
-
      url = args.url
-
      password = args.password
-
      app =getList(args.metric,args.objects, args.warning,args.critical, args.object_id)
