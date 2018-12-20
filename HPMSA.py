@@ -150,7 +150,7 @@ if __name__ == "__main__":
      args = parser.parse_args()
 
      if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
-         print("Arguments URL, username, password, devicename, metric, devicesa and critical are mandatory")
+         print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
          exit(1)
 
      object_basetype = args.object_basetype
