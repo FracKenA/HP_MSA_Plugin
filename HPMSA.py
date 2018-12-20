@@ -12,6 +12,7 @@ password = ""
 url = ""
 xpathresponse = ""
 object_basetype = ""
+debug = ""
 
 def getAPIKey ():
     concatted = username+"_"+password
@@ -93,14 +94,16 @@ def getList (metricname, devices, warning, critical, devicename):
     result =""
     devices_array = devices.split(",")
 
+    if debug is not None:
+        print(xpathresponse)
+
     if len(devicename_id) < 1:
         print("Cound not find device(s) " + devicename)
-        #print(xpathresponse)
         exit(1)
     if len(metric) < 1:
         print("Cound not find metric " + metricname)
-        #print(xpathresponse)
         exit(1)
+
 
     if not devices == "all":
         index = 0
@@ -141,11 +144,14 @@ if __name__ == "__main__":
      parser.add_argument("--username", help="API username")
      parser.add_argument("--password", help="API password")
      parser.add_argument("--object_basetype", help="(Optional) Specify an object basetype in the XML. There are some cases where you have an object under another object.")
-     parser.add_argument("--devicename", help="Identificator/Name of the object. For example; system name, devicename-id, controller name etc.")
+     parser.add_argument("--devicename", help="Identificator/Name of the object. For example; system name, durable-id, controller name etc.")
      parser.add_argument("--metric", help="The metric to retrieve from the API. For example iops.")
      parser.add_argument("--devices", help="You can either specify one, multiple (comma separated), or all (fan1, fan2, fan3 or \"all\" fans).")
      parser.add_argument("--warning", help="Warning Threshold (not needed for string verifications. E.g verify on \"OK\")")
      parser.add_argument("--critical", help="Critical Threshold")
+     parser.add_argument("--debug", help="(Optional) Prints the response from the XML API")
+
+
 
      args = parser.parse_args()
 
@@ -153,6 +159,7 @@ if __name__ == "__main__":
          print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
          exit(1)
 
+     debug = args.debug
      object_basetype = args.object_basetype
      username = args.username
      url = args.url
