@@ -21,7 +21,14 @@ def getAPIKey ():
     hashedcreds = m.hexdigest()
 
     host = re.findall('//(.*?)/', url)
-    response = requests.get("http://"+host[0]+"/api/login/" + hashedcreds).content.decode(encoding='UTF-8',errors='strict')
+
+    if "https" in url:
+        requests.packages.urllib3.disable_warnings()
+        response = requests.get("https://" + host[0] + "/api/login/" + hashedcreds, verify=False).content.decode(encoding='UTF-8',
+                                                                                                  errors='strict')
+    else:
+        response = requests.get("http://" + host[0] + "/api/login/" + hashedcreds).content.decode(encoding='UTF-8',
+                                                                                                   errors='strict')
     element = ET.fromstring(response)
     e = element.findall('.//OBJECT/PROPERTY[@name="response"]')
     sessionkey = e[0].text
@@ -44,7 +51,8 @@ def makeGetRequest (url):
     cookies = {
         'wbisessionkey': getAPIKey(),
     }
-    xpathresponse = requests.get(url, cookies=cookies).content.decode(
+    requests.packages.urllib3.disable_warnings()
+    xpathresponse = requests.get(url, cookies=cookies, verify=False).content.decode(
         encoding='UTF-8', errors='strict')
     return xpathresponse
 
@@ -55,6 +63,8 @@ def removeChars (inputString):
         return inputString
 
 def thresholdCheck (metricname,devices, metric, warning, critical):
+    metricRaw = metric
+
     metric = float(removeChars(metric))
     warning = float(warning)
     critical = float(critical)
