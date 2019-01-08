@@ -13,6 +13,7 @@ url = ""
 xpathresponse = ""
 object_basetype = ""
 debug = ""
+ignore = ""
 
 def getAPIKey ():
     concatted = username+"_"+password
@@ -21,6 +22,7 @@ def getAPIKey ():
     hashedcreds = m.hexdigest()
 
     host = re.findall('//(.*?)/', url)
+
 
     if "https" in url:
         requests.packages.urllib3.disable_warnings()
@@ -54,6 +56,7 @@ def makeGetRequest (url):
     requests.packages.urllib3.disable_warnings()
     xpathresponse = requests.get(url, cookies=cookies, verify=False).content.decode(
         encoding='UTF-8', errors='strict')
+
     return xpathresponse
 
 def removeChars (inputString):
@@ -63,16 +66,15 @@ def removeChars (inputString):
         return inputString
 
 def thresholdCheck (metricname,devices, metric, warning, critical):
-    metricRaw = metric
-
     metric = float(removeChars(metric))
     warning = float(warning)
     critical = float(critical)
     setmetrics(metricname,devices, metric)
-    if metric > warning and metric <= critical:
-        result = ("WARNING: " + devices + " "+metricname+ " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
-    elif metric > critical:
+
+    if metric >= critical:
         result = ("CRITICAL: " + devices + " "+metricname+ " is above threshold: " + str(critical) + "(" + str(metric) + ") ")
+    elif metric >= warning:
+        result = ("WARNING: " + devices + " "+metricname+ " is above threshold: " + str(warning) + " (" + str(metric) + ") ")
     elif metric < critical or metric < warning:
         result = ""
     else:
@@ -81,7 +83,8 @@ def thresholdCheck (metricname,devices, metric, warning, critical):
 
 def thresholdCheckString (metricname, devices, metric, verificationstring):
     setmetrics(metricname,devices, metric)
-    if metric != verificationstring:
+
+    if metric != verificationstring and metric != ignore:
         result = ("CRITICAL: "+devices+ " "+metricname+" " + metric + " is NOT " + verificationstring +" ")
     else:
         result =""
@@ -91,8 +94,28 @@ def setmetrics (metricname,devices, metric):
     global pipe
     pipe += devices + "."+metricname+ "=" + str(metric) + " "
 
+def countSnapshots (warning, critical):
+    amount = evalXpath('.//OBJECT[@name="snapshot"]')
+    snapshots = len(amount)
+    if snapshots <= int(critical):
+        result = ("CRITICAL! The amount of snapshots: " + str(snapshots) +" is below critical threshold: " + critical)
+    elif snapshots <= int(warning):
+        result = ("WARNING! The amount of snapshots: " + str(snapshots) +" is below warning threshold: " + warning)
+    else:
+        result = "OK! The amount of snapshots: " + str(snapshots) + ". Applied thresholds are: critical: " + str(critical) + " warning: " +str(warning)
+
+    print(result + " | amountofsnapshots=" + str(snapshots))
+
+    if "CRITICAL" in result:
+        exit(2)
+    elif "WARNING" in result:
+        exit(1)
+    else:
+        exit(0)
+
 
 def getList (metricname, devices, warning, critical, devicename):
+
     if object_basetype is None:
         devicename_id = evalXpath(".//OBJECT/PROPERTY[@name=\"" + devicename + "\"]")
         metric = evalXpath(".//OBJECT/PROPERTY[@name=\"" + metricname + "\"]")
@@ -113,7 +136,6 @@ def getList (metricname, devices, warning, critical, devicename):
     if len(metric) < 1:
         print("Cound not find metric " + metricname)
         exit(1)
-
 
     if not devices == "all":
         index = 0
@@ -159,19 +181,27 @@ if __name__ == "__main__":
      parser.add_argument("--devices", help="You can either specify one, multiple (comma separated), or all (fan1, fan2, fan3 or \"all\" fans).")
      parser.add_argument("--warning", help="Warning Threshold (not needed for string verifications. E.g verify on \"OK\")")
      parser.add_argument("--critical", help="Critical Threshold")
+     parser.add_argument("--ignore", help="(Optional) Ignore a certain keyword in string verifications.")
      parser.add_argument("--debug", help="(Optional) Prints the response from the XML API")
-
 
 
      args = parser.parse_args()
 
-     if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
-         print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
-         exit(1)
 
+     if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
+         if "count" not in args.metric:
+             print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
+             exit(1)
+
+     if args.ignore is not None:
+         ignore = args.ignore
      debug = args.debug
      object_basetype = args.object_basetype
      username = args.username
      url = args.url
      password = args.password
+
+     if "count" in args.metric:
+         countSnapshots(args.warning,args.critical)
+
      app =getList(args.metric,args.devices, args.warning,args.critical, args.devicename)
