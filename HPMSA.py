@@ -130,7 +130,7 @@ def calculateDifference (warning, critical):
     usedGb = allocatedSizeInGb - available_size
     poolUsage = usedGb / allocatedSizeInGb *100
 
-    poolUsage = str(poolUsage)[:-13]
+    poolUsage = "{0:.1f}".format(poolUsage)
 
     if float(poolUsage) >= float(critical):
         result = ("CRITICAL! Pool usage is: " + str(poolUsage) + " Critical threshold: " + str(critical))
