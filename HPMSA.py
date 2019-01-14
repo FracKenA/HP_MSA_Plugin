@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import xml.etree.ElementTree as ET
 import requests
@@ -114,6 +114,40 @@ def countSnapshots (warning, critical):
         exit(0)
 
 
+def calculateDifference (warning, critical):
+    allocated_size = removeChars(evalXpath(".//OBJECT/PROPERTY[@name=\"allocated-size\"]")[0].text)
+    available_size = removeChars(evalXpath(".//OBJECT/PROPERTY[@name=\"available-size\"]")[0].text)
+
+    allocated_size = float(allocated_size)
+
+    available_size = float(available_size)
+
+    #print("allocated: " + str(allocated_size))
+    #print("available: " + str(available_size))
+
+    allocatedSizeInGb = allocated_size * 1000
+
+    usedGb = allocatedSizeInGb - available_size
+    poolUsage = usedGb / allocatedSizeInGb *100
+
+    poolUsage = str(poolUsage)[:-13]
+
+    if float(poolUsage) >= float(critical):
+        result = ("CRITICAL! Pool usage is: " + str(poolUsage) + " Critical threshold: " + str(critical))
+    elif float(poolUsage) >= float(warning):
+        result = ("WARNING! Pool usage is: " + str(poolUsage) + " Warning threshold: " + str(warning))
+    else:
+        result = "OK! Pool usage is: " + str(poolUsage)
+
+    print(result + " | poolUsage="+str(poolUsage))
+
+    if "CRITICAL" in result:
+        exit(2)
+    elif "WARNING" in result:
+        exit(1)
+    else:
+        exit(0)
+
 def getList (metricname, devices, warning, critical, devicename):
 
     if object_basetype is None:
@@ -184,12 +218,11 @@ if __name__ == "__main__":
      parser.add_argument("--ignore", help="(Optional) Ignore a certain keyword in string verifications.")
      parser.add_argument("--debug", help="(Optional) Prints the response from the XML API")
 
-
      args = parser.parse_args()
 
 
      if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
-         if "count" not in args.metric:
+         if "count" not in args.metric and "difference" not in args.metric:
              print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
              exit(1)
 
@@ -203,5 +236,9 @@ if __name__ == "__main__":
 
      if "count" in args.metric:
          countSnapshots(args.warning,args.critical)
+
+     if "difference" in args.metric:
+         calculateDifference(args.warning, args.critical)
+
 
      app =getList(args.metric,args.devices, args.warning,args.critical, args.devicename)
