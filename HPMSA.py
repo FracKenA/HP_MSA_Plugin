@@ -234,9 +234,9 @@ if __name__ == "__main__":
      args = parser.parse_args()
 
 
-     if not args.url or not args.username or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
+     if not args.url or not args.username or not args.version or not args.password or not args.devicename or not args.metric or not args.devices or not args.critical:
          if "count" not in args.metric and "difference" not in args.metric:
-             print("Arguments URL, username, password, devicename, metric, devices and critical are mandatory")
+             print("Arguments URL, username, password, devicename, metric, devices, version and critical are mandatory")
              exit(1)
 
      if args.ignore is not None:
