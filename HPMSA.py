@@ -9,6 +9,7 @@ import re
 pipe = ""
 username = ""
 password = ""
+version = ""
 url = ""
 xpathresponse = ""
 object_basetype = ""
@@ -50,12 +51,23 @@ def evalXpath (xpath):
 def makeGetRequest (url):
     global xpathresponse
 
-    cookies = {
-        'wbisessionkey': getAPIKey(),
-    }
-    requests.packages.urllib3.disable_warnings()
-    xpathresponse = requests.get(url, cookies=cookies, verify=False).content.decode(
-        encoding='UTF-8', errors='strict')
+    if "1" in version:
+        cookies = {
+            'wbisessionkey': getAPIKey()
+        }
+        requests.packages.urllib3.disable_warnings()
+        xpathresponse = requests.get(url, cookies=cookies, verify=False).content.decode(
+            encoding='UTF-8', errors='strict')
+
+    else:
+        headers = {
+            'sessionkey': getAPIKey()
+        }
+        requests.packages.urllib3.disable_warnings()
+        xpathresponse = requests.get(url, headers=headers, verify=False).content.decode(
+            encoding='UTF-8', errors='strict')
+
+
 
     return xpathresponse
 
@@ -216,6 +228,7 @@ if __name__ == "__main__":
      parser.add_argument("--warning", help="Warning Threshold (not needed for string verifications. E.g verify on \"OK\")")
      parser.add_argument("--critical", help="Critical Threshold")
      parser.add_argument("--ignore", help="(Optional) Ignore a certain keyword in string verifications.")
+     parser.add_argument("--version", help="Version 1 is the old HP API using cookies. Version 2 is the new HP API using session headers.")
      parser.add_argument("--debug", help="(Optional) Prints the response from the XML API")
 
      args = parser.parse_args()
@@ -233,6 +246,7 @@ if __name__ == "__main__":
      username = args.username
      url = args.url
      password = args.password
+     version = args.version
 
      if "count" in args.metric:
          countSnapshots(args.warning,args.critical)
